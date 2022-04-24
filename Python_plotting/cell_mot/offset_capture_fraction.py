@@ -1,5 +1,3 @@
-# Test code change
-
 import json
 import os
 import numpy as np
