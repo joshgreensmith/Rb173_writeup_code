@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 import csv
-from math import floor
 from tqdm import tqdm
 
+# Function to get all position arrays of atoms from the output from AtomECS
 def get_pos_arrays(atoms, filename):
   atom_positions = [[] for i in range(len(atoms))]
   atoms.sort()
@@ -14,7 +14,7 @@ def get_pos_arrays(atoms, filename):
     # reader = csv.Reader(f)
 
     atom = 0
-    step = 0  
+    step = 0
     for line in tqdm(f, total=num_lines):
       if line.startswith('step'):
         step += 1
@@ -31,36 +31,38 @@ def get_pos_arrays(atoms, filename):
   return atom_positions
 
 # Atoms has to be of length 1 in this case
-fig, axs = plt.subplots(3, 3, figsize=(11,7), sharex=True, sharey=True)
+fig, ax = plt.subplots(figsize=(11,7))
 
-atoms = np.arange(10, 19, 1)
+atoms = np.arange(0, 100, 1)
 pos_arrays = get_pos_arrays(atoms, "shell_trap_output/pos.txt")
 
 for i, atom in enumerate(atoms):
-  x_arr = [pos[0] for pos in pos_arrays[i]]
-  z_arr = [pos[2] for pos in pos_arrays[i]]
+  x_arr = [pos[0] * 1e3 for pos in pos_arrays[i]]
+  z_arr = [pos[2] * 1e3 for pos in pos_arrays[i]]
 
-  axs[floor(i/3)][i%3].plot(x_arr, z_arr, label='atom trajectory')
-  axs[floor(i/3)][i%3].plot(x_arr[0], z_arr[0], 'ro', label='starting position')
+  if i == 0:
+    ax.plot(x_arr, z_arr, color=(1.0, 0.0, 0.0, 0.05), label='atom trajectory')
+  else:
+    ax.plot(x_arr, z_arr, color=(1.0, 0.0, 0.0, 0.05))
 
-  # Draw resonant spheroid ellipse
-  z0 = 0.00042
-  ellipse = Ellipse(
-    (0,0),
-    width=4*z0,
-    height=2*z0,
-    facecolor='none',
-    edgecolor='red',
-    linestyle='--')
-  axs[floor(i/3)][i%3].add_artist(ellipse)
-  axs[floor(i/3)][i%3].grid(which='major', linestyle='-')
+# Draw resonant spheroid ellipse
+z0 = 0.00042 * 1e3
+ellipse = Ellipse(
+  (0,0),
+  width=4*z0,
+  height=2*z0,
+  facecolor='none',
+  edgecolor='red',
+  linestyle='--',
+  label='resonant spheroid outline')
+
+ax.add_artist(ellipse)
+ax.set_xticks(np.arange(-1.5, 1.6, 0.25))
+ax.set_xlabel('x (mm)')
+ax.set_ylabel('z (mm)')
+ax.grid(which='major', linestyle='-')
+ax.legend(loc='upper right')
 
 
-custom_xlim = (-z0*2.5, z0*2.5)
-custom_ylim = (-z0*2, z0*2)
-plt.setp(axs, xlim=custom_xlim, ylim=custom_ylim)
-
-plt.setp(axs[-1, :], xlabel='x (m)')
-plt.setp(axs[:, 0], ylabel='z (m)')
 
 plt.show()

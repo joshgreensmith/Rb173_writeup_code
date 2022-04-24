@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 import csv
 
+# Function to return an array of arrays of positions of each atom at each timestep
 def get_pos_arrays(atoms, filename):
   atom_positions = [[] for i in range(len(atoms))]
   atoms.sort()
@@ -26,7 +27,6 @@ def get_pos_arrays(atoms, filename):
           atom += 1
 
   return atom_positions
-
 
 # Atoms has to be of length 1 in this case
 fig, ax = plt.subplots(figsize=(11,7))

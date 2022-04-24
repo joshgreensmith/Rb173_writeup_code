@@ -32,6 +32,7 @@ standard_params = {
   "gravity": True
 }
 
+# Calculate the average KE of atoms in the trap (for the final time step only)
 def calculate_average_KE(vel_filename, mass, number_of_steps):
   with open(vel_filename, 'r') as f:
     reached_last_step = False
@@ -52,10 +53,12 @@ def calculate_average_KE(vel_filename, mass, number_of_steps):
   
   return np.average(atom_KEs)
 
+# Function to calculate the size of the resonant shell trapping spheroid
 def calculate_z0(rf_frequency, quad_grad):
   z0_cm = (rf_frequency) / (2 * 0.7 * quad_grad)
   return z0_cm * 1e-2
 
+# Function to calculate the equivalent PSD at a given timestep
 def calculate_timestep_PSD(pos_filename, vel_filename, mass, timestep, z0):
   atom_positions = []
   atom_velocities_squared = []
@@ -121,6 +124,7 @@ def calculate_timestep_PSD(pos_filename, vel_filename, mass, timestep, z0):
 
   return phase_space_density
 
+# Function to return the time averaged PSD
 def get_PSD(params_arr):
   quad_grad, rf_freq, rf_amp = params_arr
   global current_PSD
@@ -153,29 +157,7 @@ def get_PSD(params_arr):
   current_PSD = np.average(psd_array)
   return -current_PSD
 
-def get_shell_trap_KE(params_arr):
-  quad_grad, rf_freq, rf_amp = params_arr
-  global current_KE_av
-
-  params = standard_params
-  params['quad_grad_initial'] = quad_grad
-  params['rf_frequency'] = rf_freq
-  params['rf_amp'] = rf_amp
-  params['mot_position_z'] = -calculate_z0(rf_freq, quad_grad)
-
-  with open('input.json', 'w') as f:
-    json.dump(params, f)
-
-  print('Quad grad = ' + str(quad_grad) +
-    '\nRF frequency = ' + str(rf_freq) +
-    '\nRF amplitude = ' + str(rf_amp) + '\n')
-  
-  cmd = 'cargo run --example mode_match_shell --release'
-  os.system(cmd)
-
-  current_KE_av = calculate_average_KE('shell_trap_output/vel.txt', 1.0, num_sim_steps)
-  return current_KE_av
-
+# Output function to write parameters to file in scipy callback
 def write_params_to_file(params_arr, convergence):
   quad_grad, rf_freq, rf_amp = params_arr
   global iteration_num
@@ -190,6 +172,7 @@ if debug:
   # print(calculate_timestep_PSD("shell_trap_output/pos.txt", "shell_trap_output/vel.txt", 1.0, 9000, 520e-6))
 
 else:
+  # Run differential evolution and output parameter evolution to a file
   kHzToGauss = 0.002857
   bounds = [(25, 100), (14, 16), (50 * kHzToGauss, 250 * kHzToGauss)]
   with open(params_file_name, 'w') as f:

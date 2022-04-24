@@ -24,6 +24,7 @@ x = np.arange(0, len(param_arrays[3]), 1)
 z = np.polyfit(x, param_arrays[3], 7)
 p = np.poly1d(z)
 
+# Plot param evolution and cost function evolution for the PSD case
 fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10,7.5))
 
 ax[0][0].plot(param_arrays[0])
